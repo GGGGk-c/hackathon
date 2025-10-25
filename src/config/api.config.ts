@@ -86,17 +86,17 @@ export const USE_SIMULATION = false
 /**
  * Threat detection mode
  * 'strict': 仅使用真实数据，无模拟威胁（推荐生产环境）
- * 'demo': 允许少量模拟威胁用于演示
+ * 'demo': 允许少量模拟威胁用于演示（平衡模式）
  * 'development': 较多模拟威胁用于开发测试
  */
-export const THREAT_MODE: 'strict' | 'demo' | 'development' = 'strict'
+export const THREAT_MODE: 'strict' | 'demo' | 'development' = 'demo'
 
 /**
  * Update intervals (ms)
  */
 export const UPDATE_INTERVALS = {
-  spaceWeather: 30000, // 30 seconds (更符合实际更新频率)
-  threats: 60000, // 60 seconds (1分钟检查一次)
+  spaceWeather: 20000, // 20 seconds (更频繁的更新)
+  threats: 30000, // 30 seconds (更频繁的威胁检测)
   positions: 1000, // 1 second
 }
 

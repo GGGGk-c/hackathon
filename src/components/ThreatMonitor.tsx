@@ -54,9 +54,18 @@ export default function ThreatMonitor() {
             generateSimulatedThreat()
           }
         } else if (THREAT_MODE === 'demo') {
-          // 演示模式：极少的模拟威胁
-          if (threats.length === 0 && Math.random() > 0.99) {
-            generateSimulatedThreat()
+          // 演示模式：适度的威胁频率，看起来更实时
+          // 增加CME和太空天气威胁的出现频率
+          if (threats.length < 2 && Math.random() > 0.85) {
+            // 15%概率生成威胁（主要是CME和太空天气）
+            const weatherThreatChance = Math.random()
+            if (weatherThreatChance > 0.3) {
+              // 70%概率生成CME/太空天气威胁
+              generateSpaceWeatherThreat()
+            } else {
+              // 30%概率生成其他威胁
+              generateSimulatedThreat()
+            }
           }
         }
         // strict 模式：不生成任何模拟威胁
@@ -84,23 +93,33 @@ export default function ThreatMonitor() {
    * Generate space weather related threats based on real data
    */
   const generateSpaceWeatherThreat = () => {
-    if (satellites.length === 0 || threats.some(t => t.type === 'solar-storm')) return
+    if (satellites.length === 0) return
+    
+    // 允许多个太空天气威胁同时存在，但限制总数
+    const weatherThreats = threats.filter(t => t.type === 'solar-storm' || t.type === 'cme')
+    if (weatherThreats.length >= 2) return
 
     const randomSatellite = satellites[Math.floor(Math.random() * satellites.length)]
     const weather = realSpaceWeatherService.getCurrentWeather()
 
-    const severity = 
-      weather.kpIndex >= 8 ? 'critical' :
-      weather.kpIndex >= 6 ? 'high' :
-      weather.kpIndex >= 5 ? 'medium' : 'low'
+    // Demo模式下更容易触发威胁
+    const severity = THREAT_MODE === 'demo'
+      ? (weather.kpIndex >= 6 ? 'critical' :
+         weather.kpIndex >= 4 ? 'high' :
+         weather.kpIndex >= 2.5 ? 'medium' : 'low')
+      : (weather.kpIndex >= 8 ? 'critical' :
+         weather.kpIndex >= 6 ? 'high' :
+         weather.kpIndex >= 5 ? 'medium' : 'low')
+
+    const threatType = Math.random() > 0.5 ? 'cme' : 'solar-storm'
 
     addThreat({
       satelliteId: randomSatellite.id,
-      type: weather.solarFlareLevel === 'storm' ? 'solar-storm' : 'cme',
+      type: threatType,
       severity: severity as 'low' | 'medium' | 'high' | 'critical',
-      timeToEvent: 3600, // 1 hour
-      probability: 0.7,
-      description: `${USE_SIMULATION ? '[REAL DATA] ' : ''}High solar activity detected. Kp=${weather.kpIndex.toFixed(1)}, Solar Wind=${weather.solarWindSpeed.toFixed(0)} km/s`,
+      timeToEvent: 1800 + Math.random() * 3600, // 30min - 1.5 hours
+      probability: 0.6 + Math.random() * 0.3, // 60-90%
+      description: `${THREAT_MODE === 'demo' ? '[DEMO] ' : ''}${threatType === 'cme' ? 'CME' : 'Solar Storm'} detected. Kp=${weather.kpIndex.toFixed(1)}, Solar Wind=${weather.solarWindSpeed.toFixed(0)} km/s`,
       suggestedActions: [
         {
           id: `action-${Date.now()}-1`,
