@@ -1,0 +1,55 @@
+# ====================================
+# 🛰️ Satellite Threat Detection System
+# Environment Configuration Template
+# ====================================
+
+# Copy this file to .env in the project root and fill in your credentials
+
+# ===== Space-Track.org API Credentials =====
+# Register at: https://www.space-track.org/auth/register
+# Documentation: https://www.space-track.org/documentation
+VITE_SPACETRACK_USERNAME=your_username_here
+VITE_SPACETRACK_PASSWORD=your_password_here
+
+# ===== Data Source Configuration =====
+# Set to 'false' to use real APIs, 'true' for simulation mode
+VITE_USE_SIMULATION=true
+
+# ===== API Request Configuration =====
+# Request timeout in milliseconds
+VITE_REQUEST_TIMEOUT=10000
+
+# Cache duration (milliseconds)
+VITE_CACHE_DURATION_SPACE_WEATHER=60000   # 1 minute
+VITE_CACHE_DURATION_CONJUNCTION=300000     # 5 minutes
+VITE_CACHE_DURATION_TLE=3600000            # 1 hour
+
+# ===== Update Intervals (milliseconds) =====
+VITE_UPDATE_INTERVAL_WEATHER=5000     # 5 seconds
+VITE_UPDATE_INTERVAL_THREATS=10000    # 10 seconds
+VITE_UPDATE_INTERVAL_POSITIONS=1000   # 1 second
+
+# ===== Rate Limiting =====
+# Space-Track.org limits
+VITE_SPACETRACK_REQUESTS_PER_MINUTE=20
+VITE_SPACETRACK_REQUESTS_PER_HOUR=200
+
+# NOAA limits
+VITE_NOAA_REQUESTS_PER_MINUTE=60
+
+# ===== Optional: Custom API Endpoints =====
+# Only change these if you're using a custom backend
+# VITE_SPACETRACK_BASE_URL=https://www.space-track.org
+# VITE_NOAA_BASE_URL=https://services.swpc.noaa.gov
+
+# ===== Development Settings =====
+# Enable debug logging
+VITE_DEBUG_MODE=false
+
+# Enable performance monitoring
+VITE_PERFORMANCE_MONITORING=false
+
+
+
+
+
