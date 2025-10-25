@@ -38,37 +38,24 @@ interface SatelliteOrbitProps {
 function SatelliteOrbit({ satellite, isSelected, isHovered, onSelect, onHover }: SatelliteOrbitProps) {
   const orbitalRef = useRef<THREE.Group>(null)
   const satelliteRef = useRef<THREE.Mesh>(null)
+  const [position, setPosition] = React.useState(new THREE.Vector3())
   
-  // Convert orbital parameters to 3D position
-  const { position, orbitPoints } = useMemo(() => {
+  // Calculate orbital parameters and orbit path (static)
+  const { orbitPoints, orbitalParams } = useMemo(() => {
     const params = satellite.orbitalParams
     const a = params.semiMajorAxis / 6371 // Normalize to Earth radii
     const e = params.eccentricity
     const i = (params.inclination * Math.PI) / 180
     const raan = (params.raan * Math.PI) / 180
     const argPeri = (params.argumentOfPeriapsis * Math.PI) / 180
-    const trueAnom = (params.trueAnomaly * Math.PI) / 180
 
-    // Calculate position in orbital plane
-    const r = (a * (1 - e * e)) / (1 + e * Math.cos(trueAnom))
-    const x = r * Math.cos(trueAnom)
-    const y = r * Math.sin(trueAnom)
-
-    // Rotate to 3D space
+    // Rotation matrices
     const cosI = Math.cos(i)
     const sinI = Math.sin(i)
     const cosRaan = Math.cos(raan)
     const sinRaan = Math.sin(raan)
     const cosArgPeri = Math.cos(argPeri)
     const sinArgPeri = Math.sin(argPeri)
-
-    const px =
-      x * (cosRaan * cosArgPeri - sinRaan * sinArgPeri * cosI) -
-      y * (cosRaan * sinArgPeri + sinRaan * cosArgPeri * cosI)
-    const py =
-      x * (sinRaan * cosArgPeri + cosRaan * sinArgPeri * cosI) -
-      y * (sinRaan * sinArgPeri - cosRaan * cosArgPeri * cosI)
-    const pz = x * sinArgPeri * sinI + y * cosArgPeri * sinI
 
     // Generate orbit path
     const points: THREE.Vector3[] = []
@@ -91,17 +78,36 @@ function SatelliteOrbit({ satellite, isSelected, isHovered, onSelect, onHover }:
     }
 
     return {
-      position: new THREE.Vector3(px, pz, py),
       orbitPoints: points,
+      orbitalParams: { a, e, i, raan, argPeri, cosI, sinI, cosRaan, sinRaan, cosArgPeri, sinArgPeri }
     }
   }, [satellite])
 
+  // Animate satellite along orbit
   useFrame((state) => {
-    if (orbitalRef.current) {
-      const time = state.clock.getElapsedTime()
-      // Slow orbit animation
-      orbitalRef.current.rotation.y = time * 0.05
-    }
+    const time = state.clock.getElapsedTime()
+    // Calculate true anomaly based on time (simulate orbital motion)
+    // Speed factor: adjust this to control satellite speed
+    const speedFactor = 0.3
+    const trueAnom = (time * speedFactor + satellite.orbitalParams.trueAnomaly * Math.PI / 180) % (2 * Math.PI)
+    
+    // Calculate radius at this true anomaly
+    const { a, e, cosI, sinI, cosRaan, sinRaan, cosArgPeri, sinArgPeri } = orbitalParams
+    const r = (a * (1 - e * e)) / (1 + e * Math.cos(trueAnom))
+    const x = r * Math.cos(trueAnom)
+    const y = r * Math.sin(trueAnom)
+
+    // Rotate to 3D space
+    const px =
+      x * (cosRaan * cosArgPeri - sinRaan * sinArgPeri * cosI) -
+      y * (cosRaan * sinArgPeri + sinRaan * cosArgPeri * cosI)
+    const py =
+      x * (sinRaan * cosArgPeri + cosRaan * sinArgPeri * cosI) -
+      y * (sinRaan * sinArgPeri - cosRaan * cosArgPeri * cosI)
+    const pz = x * sinArgPeri * sinI + y * cosArgPeri * sinI
+
+    // Update position
+    setPosition(new THREE.Vector3(px, pz, py))
   })
 
   const color = 
